@@ -8,7 +8,7 @@ A comprehensive React-based survey platform using SurveyJS that allows users to 
 - **Link Sharing**: Share surveys via direct links
 - **Response Collection**: Collect and store responses in MongoDB
 - **Real-time Results**: View survey results and analytics
-- **Excel Export**: Export responses to Excel files for analysis
+- **Excel Export**: Export responses to Excel files for analysis (in progress)
 - **Dashboard**: Manage all surveys from a central dashboard
 
 ## 🛠️ Tech Stack
@@ -93,8 +93,7 @@ The backend will be available at `http://localhost:5000`
 
 ### Viewing Results
 1. From the Dashboard, click "View Results" on any survey
-2. See response statistics and individual responses
-3. Export to Excel for detailed analysis
+3. Export to Excel for detailed analysis (in progress)
 
 ### Managing Surveys
 - **Activate/Deactivate**: Control whether a survey accepts new responses
@@ -209,29 +208,3 @@ PORT=5000
 3. Make your changes
 4. Test thoroughly
 5. Submit a pull request
-
-## 📝 License
-
-This project is licensed under the MIT License.
-
-## 🆘 Support
-
-For support, please create an issue in the GitHub repository or contact the development team.
-
-## 🔄 Updates & Maintenance
-
-- Regularly update dependencies
-- Monitor MongoDB performance
-- Review and update security configurations
-- Backup survey data regularly+ Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
