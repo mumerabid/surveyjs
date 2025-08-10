@@ -1,6 +1,6 @@
 # SurveyJS Platform
 
-A comprehensive React-based survey platform using SurveyJS that allows users to design surveys, share them via links, collect responses, and export results to Excel.
+A comprehensive React-based survey platform using SurveyJS that allows users to design surveys, share them via links, collect responses, and export results to Excel (vibe coding)
 
 ## 🚀 Features
 
