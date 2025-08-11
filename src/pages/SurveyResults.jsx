@@ -14,12 +14,13 @@ const SurveyResultsTable = ({ surveyJson, surveyResults }) => {
 
   useEffect(() => {
     if (!surveyJson || !surveyResults || !tableContainerRef.current) return;
+    const container = tableContainerRef.current;
     const model = new Model(surveyJson);
     const table = new Tabulator(model, surveyResults);
-    table.render(tableContainerRef.current);
+    table.render(container);
     return () => {
       if (table && typeof table.dispose === "function") table.dispose();
-      else if (tableContainerRef.current) tableContainerRef.current.innerHTML = "";
+      else if (container) container.innerHTML = "";
     };
   }, [surveyJson, surveyResults]);
 
@@ -149,72 +150,34 @@ export const SurveyResults = () => {
     URL.revokeObjectURL(url);
   };
 
-  const exportToCsvWithSurveyAnalytics = () => {
+  // CSV and summary exports removed to keep page focused on Excel export. Re-add if needed.
+
+  const handleExportExcelModel = async () => {
     try {
-      if (!survey || !responses || responses.length === 0) {
+      if (!id) return;
+      if (!responses || responses.length === 0) {
         alert("No responses to export.");
         return;
       }
-      const surveyJson =
-        typeof survey.json === "string" ? JSON.parse(survey.json) : survey.json;
-      const model = new Model(surveyJson);
-      const tabulator = new Tabulator(model, responses);
-      tabulator.exportToCsv({
-        fileName: `${survey.title}_responses_${new Date()
-          .toISOString()
-          .split("T")[0]}.csv`,
-      });
+      await surveyService.exportToExcelModel(id);
     } catch (err) {
-      alert("Failed to export CSV: " + err.message);
+      const msg = err?.message || "Failed to export (Model)";
+      alert(`Export (Model) failed: ${msg}`);
     }
   };
 
-  const exportSummaryReport = () => {
-    const reportData = {
-      survey: {
-        title: survey.title,
-        description: survey.description,
-        totalResponses: responses.length,
-        exportDate: new Date().toISOString(),
-      },
-      statistics: {},
-      responses: responses.map((response) => ({
-        id: response._id,
-        submittedAt: response.submittedAt,
-        data: response.data,
-      })),
-    };
-    if (responses.length > 0) {
-      const allKeys = new Set();
-      responses.forEach((response) => {
-        if (response.data) {
-          Object.keys(response.data).forEach((key) => allKeys.add(key));
-        }
-      });
-      Array.from(allKeys).forEach((key) => {
-        const values = responses
-          .map((r) => r.data?.[key])
-          .filter((v) => v !== undefined && v !== null && v !== "");
-        reportData.statistics[key] = {
-          responseCount: values.length,
-          responseRate:
-            ((values.length / responses.length) * 100).toFixed(1) + "%",
-          uniqueValues: [...new Set(values)].length,
-        };
-      });
+  const handleExportExcelRaw = async () => {
+    try {
+      if (!id) return;
+      if (!responses || responses.length === 0) {
+        alert("No responses to export.");
+        return;
+      }
+      await surveyService.exportToExcelRaw(id);
+    } catch (err) {
+      const msg = err?.message || "Failed to export (Raw)";
+      alert(`Export (Raw) failed: ${msg}`);
     }
-    const dataStr = JSON.stringify(reportData, null, 2);
-    const dataBlob = new Blob([dataStr], { type: "application/json" });
-    const url = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `${survey.title}_summary_report_${new Date()
-      .toISOString()
-      .split("T")[0]}.json`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
   };
 
   if (loading) {
@@ -242,12 +205,7 @@ export const SurveyResults = () => {
     );
   }
 
-  const parsedSurveyJson =
-    survey && survey.json
-      ? typeof survey.json === "string"
-        ? JSON.parse(survey.json)
-        : survey.json
-      : null;
+  // Note: parsedSurveyJson removed as it was unused (table component is commented out)
 
   return (
     <div className="survey-results-container">
@@ -275,6 +233,63 @@ export const SurveyResults = () => {
                 flexWrap: "wrap",
               }}
             >
+              
+              <button
+                onClick={handleExportExcelModel}
+                className="export-button excel"
+                style={{
+                  backgroundColor: "#0d6efd",
+                  color: "white",
+                  border: "none",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "0.9rem",
+                  fontWeight: "500",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = "#0b5ed7";
+                  e.target.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = "#0d6efd";
+                  e.target.style.transform = "translateY(0)";
+                }}
+              >
+                🧭 Export (Model)
+              </button>
+              <button
+                onClick={handleExportExcelRaw}
+                className="export-button excel"
+                style={{
+                  backgroundColor: "#6c757d",
+                  color: "white",
+                  border: "none",
+                  padding: "0.5rem 1rem",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  fontSize: "0.9rem",
+                  fontWeight: "500",
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.backgroundColor = "#5c636a";
+                  e.target.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.backgroundColor = "#6c757d";
+                  e.target.style.transform = "translateY(0)";
+                }}
+              >
+                🧱 Export (Raw)
+              </button>
               <button
                 onClick={exportToJSON}
                 className="export-button json"

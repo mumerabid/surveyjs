@@ -52,26 +52,89 @@ class SurveyService {
 
   // Export functionality
   async exportToExcel(surveyId) {
-    const response = await this.api.get(`/surveys/${surveyId}/export`, {
-      responseType: 'blob'
-    })
-    
-    // Create blob link to download
-    const url = window.URL.createObjectURL(new Blob([response.data]))
-    const link = document.createElement('a')
-    link.href = url
-    
-    // Get filename from response headers or use default
-    const contentDisposition = response.headers['content-disposition']
-    const filename = contentDisposition 
-      ? contentDisposition.split('filename=')[1]?.replace(/['"]/g, '')
-      : `survey-${surveyId}-responses.xlsx`
-    
-    link.setAttribute('download', filename)
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    window.URL.revokeObjectURL(url)
+    try {
+      const response = await this.api.get(`/surveys/${surveyId}/export`, {
+        responseType: 'blob'
+      })
+      
+      // Create blob link to download
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      
+      // Get filename from response headers or use default
+      const contentDisposition = response.headers['content-disposition']
+      const filename = contentDisposition 
+        ? contentDisposition.split('filename=')[1]?.replace(/['"]/g, '')
+        : `survey-${surveyId}-responses.xlsx`
+      
+      link.setAttribute('download', filename)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      // When responseType is 'blob', axios puts JSON error into a Blob
+      const blob = err?.response?.data
+      if (blob && typeof blob === 'object' && 'type' in blob && typeof blob.text === 'function') {
+        try {
+          const text = await blob.text()
+          try {
+            const json = JSON.parse(text)
+            throw new Error(json?.error || json?.message || 'Failed to export')
+          } catch {
+            // Not JSON; throw raw text
+            throw new Error(text || 'Failed to export')
+          }
+        } catch (inner) {
+          throw new Error(inner?.message || 'Failed to export')
+        }
+      }
+      // Fallbacks
+      const message = err?.response?.data?.error || err?.message || 'Failed to export'
+      throw new Error(message)
+    }
+  }
+
+  async exportToExcelModel(surveyId) {
+    return this.exportToExcel(surveyId)
+  }
+
+  async exportToExcelRaw(surveyId) {
+    try {
+      const response = await this.api.get(`/surveys/${surveyId}/export-raw`, {
+        responseType: 'blob'
+      })
+      const url = window.URL.createObjectURL(new Blob([response.data]))
+      const link = document.createElement('a')
+      link.href = url
+      const contentDisposition = response.headers['content-disposition']
+      const filename = contentDisposition 
+        ? contentDisposition.split('filename=')[1]?.replace(/['"]/g, '')
+        : `survey-${surveyId}-responses-raw.xlsx`
+      link.setAttribute('download', filename)
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      const blob = err?.response?.data
+      if (blob && typeof blob === 'object' && 'type' in blob && typeof blob.text === 'function') {
+        try {
+          const text = await blob.text()
+          try {
+            const json = JSON.parse(text)
+            throw new Error(json?.error || json?.message || 'Failed to export (raw)')
+          } catch {
+            throw new Error(text || 'Failed to export (raw)')
+          }
+        } catch (inner) {
+          throw new Error(inner?.message || 'Failed to export (raw)')
+        }
+      }
+      const message = err?.response?.data?.error || err?.message || 'Failed to export (raw)'
+      throw new Error(message)
+    }
   }
 }
 
